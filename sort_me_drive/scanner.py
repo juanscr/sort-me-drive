@@ -6,11 +6,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import piexif
+from mutagen.mp4 import MP4
 
 DEFAULT_EXTENSIONS = {"jpg", "jpeg", "png", "heic", "mp4", "mov", "gif", "webp"}
 
-# EXIF tag IDs
-EXIF_DATE_TIME_ORIGINAL = piexif.ExifIFD.DateTimeOriginal
+VIDEO_EXTENSIONS = {".mp4", ".mov"}
 
 
 @dataclass
@@ -23,12 +23,28 @@ class ScanResult:
 
 
 def has_exif_date(file_path: Path) -> bool:
-    """Check if a file already has DateTimeOriginal EXIF tag set."""
+    """Check if a file already has date metadata set."""
+    ext = file_path.suffix.lower()
+
+    if ext in VIDEO_EXTENSIONS:
+        return _video_has_date(file_path)
+
+    # Image files: check EXIF DateTimeOriginal
     try:
         exif_data = piexif.load(str(file_path))
         exif_ifd = exif_data.get("Exif", {})
-        date_original = exif_ifd.get(EXIF_DATE_TIME_ORIGINAL)
+        date_original = exif_ifd.get(piexif.ExifIFD.DateTimeOriginal)
         return date_original is not None and date_original != b""
+    except Exception:
+        return False
+
+
+def _video_has_date(file_path: Path) -> bool:
+    """Check if a video file already has a creation date tag."""
+    try:
+        video = MP4(str(file_path))
+        day_tag = video.get("\xa9day")
+        return day_tag is not None and len(day_tag) > 0 and day_tag[0] != ""
     except Exception:
         return False
 
