@@ -1,0 +1,23 @@
+[project]
+name = "sort-me-drive"
+version = "0.1.0"
+description = "Fix EXIF date metadata on photos imported from Google Drive to OneDrive"
+authors = [{ name = "juanscr" }]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["piexif>=1.1.3"]
+
+[project.scripts]
+sort-me-drive = "sort_me_drive.cli:main"
+test = "pytest"
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm.dev-dependencies]
+test = ["pytest>=8.0", "Pillow>=10.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
